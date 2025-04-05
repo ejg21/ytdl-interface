@@ -1,31 +1,12 @@
-const ytdl = require("ytdl-core");
 const fs = require("fs");
-
-const getVideoInfo = (videoUrl) => {
-  try {
-    const videoId = ytdl.getVideoID(videoUrl);
-    if (!videoId) {
-      throw new Error('No video ID found');
-    }
-    const ytThumbnail = {
-      ytThumbnail: `https://img.youtube.com/vi/${videoId}/sddefault.jpg`,
-      videoId: videoId,
-    };
-    return ytThumbnail;
-  } catch (error) {
-    console.error('Error getting video info:', error);
-    throw new Error('Error processing the video URL');
-  }
-};
+const path = require("path");
 
 const download = (videoId, filter, quality, fileFormat) => {
-  // Create a download folder if it doesn't exist
-  const downloadFolder = `${process.env.HOME || process.env.USERPROFILE}/Downloads/ytdl`;
-  if (!fs.existsSync(downloadFolder)) {
-    fs.mkdirSync(downloadFolder);
-  }
+  // Use the current directory (.) for downloads
+  const downloadPath = path.resolve('.'); // This is the current directory
 
-  const outputFilePath = `${downloadFolder}/towtin-${videoId}.${fileFormat}`;
+  // Generate the output file path with the current directory
+  const outputFilePath = `${downloadPath}/${videoId}.${fileFormat}`;
 
   const options = {
     highWaterMark: 5 * 1024 * 1024,
