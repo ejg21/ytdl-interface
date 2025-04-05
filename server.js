@@ -1,33 +1,46 @@
 const { getVideoInfo, download } = require("./ytdl.js");
 const express = require("express");
-app = express();
+const app = express();
 
 var videoId = "";
 
+// Serve static files
 app.use(express.static("./public"));
 
-// return thumbnail to client and save videoId
+// Handle video info query
 app.get("/videoInfo/query", (req, res) => {
   const { url } = req.query;
+  console.log('Received video URL:', url);  // Debugging line
 
-  ytThumbnail = getVideoInfo(url);
-  videoId = ytThumbnail.videoId;
-
-  res.status(200).json({ success: true, data: ytThumbnail });
+  try {
+    const ytThumbnail = getVideoInfo(url);
+    videoId = ytThumbnail.videoId;
+    res.status(200).json({ success: true, data: ytThumbnail });
+  } catch (error) {
+    console.error('Error getting video info:', error);
+    res.status(500).json({ success: false, message: 'Error processing video URL' });
+  }
 });
 
-// download video\audio based on user option
+// Handle download options
 app.get("/options/:opt", (req, res) => {
   const opt = req.params.opt;
+  if (!videoId) {
+    return res.status(400).json({ success: false, message: 'No video ID found' });
+  }
 
-  if (opt == "mp3") download(videoId, "audioonly", "highestaudio", "mp3");
-  if (opt == "mp4") download(videoId, "videoonly", "highestvideo", "mp4");
-  if (opt == "both") download(videoId, "videoandaudio", "highest", "mp4");
-
-  res.status(200).send("Received the request...");
+  try {
+    if (opt === "mp3") download(videoId, "audioonly", "highestaudio", "mp3");
+    if (opt === "mp4") download(videoId, "videoonly", "highestvideo", "mp4");
+    if (opt === "both") download(videoId, "videoandaudio", "highest", "mp4");
+    res.status(200).send("Received the request...");
+  } catch (error) {
+    console.error('Error during download:', error);
+    res.status(500).json({ success: false, message: 'Error during download' });
+  }
 });
 
-// set all route except for written as 404
+// 404 for undefined routes
 app.all("*", (req, res) => {
   res.status(404).send("404 Not Found");
 });
